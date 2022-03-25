@@ -5,6 +5,11 @@ const axios = require('axios').default;
 
 const port = 3000
 
+app.use(express.json()) // for parsing application/json
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+let accessToken = ''
+
 app.post('/api/auth', async (req, res) => {
   try {
     const getToken = await axios({
@@ -17,13 +22,34 @@ app.post('/api/auth', async (req, res) => {
       headers: { 'client_id': 'keb_hana' }
     });
 
-    console.log(getToken);
+    // console.log(getToken);
+    accessToken = getToken.data.access_token
     res.status(getToken.status).json(getToken.data)
   } catch (err) {
     console.log(err, '<------------------------------');
     res.status(err.status).json(err.data)
   }
 })
+
+app.get('/api/v1/data/nik/:NIK', async (req, res) => {
+  try {
+    const {NIK} = req.params
+    // console.log(accessToken, '<---------------------');
+    const getData = await axios({
+      method: 'get',
+      url: `http://10.25.88.173:8081/api/v1/data/nik/${NIK}`,
+      headers: { 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyMi0wMy0yNSIsInVzZXJJZCI6ImJrZWJoYW5hIiwidGltZSI6IjEwOjEyOjUyIn0.k9IL2He23SfKanWYrpRkkKBi7JP0QVDrs94kLdc7-R8' }
+    });
+
+    console.log(getData, '<-----------------------');
+    res.status(getData.status).json(getData.data)
+  } catch (err) {
+    //console.log(err, '<+++++++++++++++++');
+    res.status(err.response.status).json(err.response.data)
+  }
+})
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
